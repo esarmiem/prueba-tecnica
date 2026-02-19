@@ -32,7 +32,13 @@ type ExpenseContextValue = {
 
 const ExpenseContext = createContext<ExpenseContextValue | undefined>(undefined)
 
-const ExpenseProvider = ({ children }: { children: ReactNode }) => {
+const ExpenseProvider = ({
+  children,
+  autoFetch = true,
+}: {
+  children: ReactNode
+  autoFetch?: boolean
+}) => {
   const [storedExpenses, setStoredExpenses] = useLocalStorage<Expense[]>(
     'expenses',
     []
@@ -62,8 +68,11 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
   }, [filters, setStoredExpenses, storedExpenses])
 
   useEffect(() => {
+    if (!autoFetch) {
+      return
+    }
     refreshExpenses()
-  }, [refreshExpenses])
+  }, [autoFetch, refreshExpenses])
 
   const addExpense = async (data: ExpenseFormData): Promise<Expense> => {
     setLoading(true)
