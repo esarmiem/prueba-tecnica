@@ -19,9 +19,12 @@ type ExpenseContextValue = {
   expenses: Expense[]
   loading: boolean
   error: string | null
+  successMessage: string | null
+  isFallback: boolean
   filters: ExpenseFilters
   setFilters: React.Dispatch<React.SetStateAction<ExpenseFilters>>
   refreshExpenses: () => Promise<void>
+  clearSuccessMessage: () => void
   addExpense: (data: ExpenseFormData) => Promise<Expense>
   editExpense: (id: string, data: Partial<ExpenseFormData>) => Promise<Expense>
   removeExpense: (id: string) => Promise<void>
@@ -37,6 +40,8 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
   const [expenses, setExpenses] = useState<Expense[]>(storedExpenses)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [successMessage, setSuccessMessage] = useState<string | null>(null)
+  const [isFallback, setIsFallback] = useState(false)
   const [filters, setFilters] = useState<ExpenseFilters>({})
 
   const refreshExpenses = useCallback(async () => {
@@ -46,9 +51,11 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
       const data = await getExpenses(filters)
       setExpenses(data)
       setStoredExpenses(data)
+      setIsFallback(false)
     } catch {
       setError('No se pudo cargar la API. Usando localStorage.')
       setExpenses(storedExpenses)
+      setIsFallback(true)
     } finally {
       setLoading(false)
     }
@@ -66,6 +73,8 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
       const next = [...expenses, created]
       setExpenses(next)
       setStoredExpenses(next)
+      setSuccessMessage('Gasto agregado correctamente')
+      setIsFallback(false)
       return created
     } catch {
       setError('No se pudo crear el gasto.')
@@ -88,6 +97,8 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
       )
       setExpenses(next)
       setStoredExpenses(next)
+      setSuccessMessage('Gasto actualizado correctamente')
+      setIsFallback(false)
       return updated
     } catch {
       setError('No se pudo actualizar el gasto.')
@@ -105,6 +116,8 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
       const next = expenses.filter((expense) => expense.id !== id)
       setExpenses(next)
       setStoredExpenses(next)
+      setSuccessMessage('Gasto eliminado correctamente')
+      setIsFallback(false)
     } catch {
       setError('No se pudo eliminar el gasto.')
       throw new Error('deleteExpense failed')
@@ -117,9 +130,12 @@ const ExpenseProvider = ({ children }: { children: ReactNode }) => {
     expenses,
     loading,
     error,
+    successMessage,
+    isFallback,
     filters,
     setFilters,
     refreshExpenses,
+    clearSuccessMessage: () => setSuccessMessage(null),
     addExpense,
     editExpense,
     removeExpense,

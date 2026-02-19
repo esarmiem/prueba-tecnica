@@ -8,7 +8,15 @@ import { ExpenseProvider, useExpenses } from './context/ExpenseContext'
 import type { Expense } from './types/expense'
 
 const AppContent = () => {
-  const { expenses } = useExpenses()
+  const {
+    expenses,
+    loading,
+    error,
+    isFallback,
+    successMessage,
+    clearSuccessMessage,
+    refreshExpenses,
+  } = useExpenses()
   const [expenseToEdit, setExpenseToEdit] = useState<Expense | undefined>(
     undefined
   )
@@ -27,7 +35,14 @@ const AppContent = () => {
       <header className="mb-4">
         <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
           <div>
-            <h1 className="h3 mb-1">Gestor de Gastos</h1>
+            <div className="d-flex flex-wrap align-items-center gap-2">
+              <h1 className="h3 mb-1">Gestor de Gastos</h1>
+              {isFallback && (
+                <span className="badge text-bg-warning">
+                  Datos desde localStorage
+                </span>
+              )}
+            </div>
             <p className="text-muted mb-0">
               Controla tus gastos personales en un solo lugar
             </p>
@@ -40,6 +55,25 @@ const AppContent = () => {
       </header>
 
       <div className="d-flex flex-column gap-4">
+        {error && (
+          <div className="alert alert-danger d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
+            <div>{error}</div>
+            <button
+              type="button"
+              className="btn btn-outline-danger btn-sm"
+              onClick={refreshExpenses}
+            >
+              Reintentar
+            </button>
+          </div>
+        )}
+        {loading && (
+          <div className="d-flex justify-content-center">
+            <div className="spinner-border text-primary" role="status">
+              <span className="visually-hidden">Cargando...</span>
+            </div>
+          </div>
+        )}
         <FilterBar />
         <ExpenseSummary expenses={expenses} />
         <div className="row g-4">
@@ -52,6 +86,21 @@ const AppContent = () => {
         </div>
         <ExpenseTable expenses={expenses} onEdit={handleEdit} />
       </div>
+      {successMessage && (
+        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1080 }}>
+          <div className="toast show">
+            <div className="toast-header">
+              <strong className="me-auto">Listo</strong>
+              <button
+                type="button"
+                className="btn-close"
+                onClick={clearSuccessMessage}
+              />
+            </div>
+            <div className="toast-body">{successMessage}</div>
+          </div>
+        </div>
+      )}
     </div>
   )
 }
