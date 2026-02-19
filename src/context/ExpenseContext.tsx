@@ -3,6 +3,7 @@ import {
   useCallback,
   useContext,
   useEffect,
+  useRef,
   useState,
 } from 'react'
 import type { ReactNode } from 'react'
@@ -44,11 +45,16 @@ const ExpenseProvider = ({
     []
   )
   const [expenses, setExpenses] = useState<Expense[]>(storedExpenses)
+  const storedExpensesRef = useRef(storedExpenses)
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
   const [isFallback, setIsFallback] = useState(false)
   const [filters, setFilters] = useState<ExpenseFilters>({})
+
+  useEffect(() => {
+    storedExpensesRef.current = storedExpenses
+  }, [storedExpenses])
 
   const refreshExpenses = useCallback(async () => {
     setLoading(true)
@@ -60,12 +66,12 @@ const ExpenseProvider = ({
       setIsFallback(false)
     } catch {
       setError('No se pudo cargar la API. Usando localStorage.')
-      setExpenses(storedExpenses)
+      setExpenses(storedExpensesRef.current)
       setIsFallback(true)
     } finally {
       setLoading(false)
     }
-  }, [filters, setStoredExpenses, storedExpenses])
+  }, [filters, setStoredExpenses])
 
   useEffect(() => {
     if (!autoFetch) {

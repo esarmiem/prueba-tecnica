@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useCallback, useState } from 'react'
 
 const useLocalStorage = <T,>(
   key: string,
@@ -13,7 +13,8 @@ const useLocalStorage = <T,>(
     }
   })
 
-  const setValue: React.Dispatch<React.SetStateAction<T>> = (value) => {
+  const setValue: React.Dispatch<React.SetStateAction<T>> = useCallback(
+    (value) => {
     setStoredValue((prevValue) => {
       const valueToStore =
         value instanceof Function ? value(prevValue) : value
@@ -24,7 +25,9 @@ const useLocalStorage = <T,>(
       }
       return valueToStore
     })
-  }
+  },
+  [key]
+  )
 
   return [storedValue, setValue]
 }
