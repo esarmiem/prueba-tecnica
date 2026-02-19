@@ -1,75 +1,77 @@
-# React + TypeScript + Vite
+# Prueba Técnica — Tracker de Gastos
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+Aplicación fullstack para gestionar gastos personales con React + TypeScript y Node.js + Express. El frontend consume una API REST y usa localStorage como fallback cuando la API no está disponible.
 
-Currently, two official plugins are available:
+## Requisitos
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Babel](https://babeljs.io/) (or [oxc](https://oxc.rs) when used in [rolldown-vite](https://vite.dev/guide/rolldown)) for Fast Refresh
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/) for Fast Refresh
+- Node.js 18+
+- pnpm
 
-## React Compiler
+## Backend (local)
 
-The React Compiler is enabled on this template. See [this documentation](https://react.dev/learn/react-compiler) for more information.
-
-Note: This will impact Vite dev & build performances.
-
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend updating the configuration to enable type-aware lint rules:
-
-```js
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-
-      // Remove tseslint.configs.recommended and replace with this
-      tseslint.configs.recommendedTypeChecked,
-      // Alternatively, use this for stricter rules
-      tseslint.configs.strictTypeChecked,
-      // Optionally, add this for stylistic rules
-      tseslint.configs.stylisticTypeChecked,
-
-      // Other configs...
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+```bash
+cd ../pruebatecnicabackend
+pnpm install
+pnpm dev
 ```
 
-You can also install [eslint-plugin-react-x](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-x) and [eslint-plugin-react-dom](https://github.com/Rel1cx/eslint-react/tree/main/packages/plugins/eslint-plugin-react-dom) for React-specific lint rules:
+Endpoints principales:
 
-```js
-// eslint.config.js
-import reactX from 'eslint-plugin-react-x'
-import reactDom from 'eslint-plugin-react-dom'
+- GET http://localhost:3001/api/expenses
+- POST http://localhost:3001/api/expenses
+- PUT http://localhost:3001/api/expenses/:id
+- DELETE http://localhost:3001/api/expenses/:id
+- GET http://localhost:3001/health
 
-export default defineConfig([
-  globalIgnores(['dist']),
-  {
-    files: ['**/*.{ts,tsx}'],
-    extends: [
-      // Other configs...
-      // Enable lint rules for React
-      reactX.configs['recommended-typescript'],
-      // Enable lint rules for React DOM
-      reactDom.configs.recommended,
-    ],
-    languageOptions: {
-      parserOptions: {
-        project: ['./tsconfig.node.json', './tsconfig.app.json'],
-        tsconfigRootDir: import.meta.dirname,
-      },
-      // other options...
-    },
-  },
-])
+## Frontend (local)
+
+```bash
+pnpm install
+pnpm dev
 ```
+
+## Variables de entorno
+
+### Frontend
+
+Archivo `.env.example`:
+
+```
+VITE_API_URL=http://localhost:3001
+```
+
+Archivo `.env.production`:
+
+```
+VITE_API_URL=https://your-render-service.onrender.com
+```
+
+En Vercel, definir:
+
+```
+VITE_API_URL=https://your-render-service.onrender.com
+```
+
+### Backend
+
+Archivo `.env.example`:
+
+```
+PORT=3001
+ALLOWED_ORIGIN=https://your-vercel-app.vercel.app
+```
+
+En Render, definir:
+
+- NODE_ENV=production
+- ALLOWED_ORIGIN=https://your-vercel-app.vercel.app
+
+## Deploy
+
+- Frontend (Vercel): https://your-vercel-app.vercel.app
+
+## Screenshots
+
+![Listado de gastos](./screenshots/listado-gastos.png)
+![Formulario de gasto](./screenshots/formulario-gasto.png)
+![Filtros y resumen](./screenshots/filtros-resumen.png)
