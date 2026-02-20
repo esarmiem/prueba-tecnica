@@ -1,6 +1,27 @@
-# Prueba Técnica — Tracker de Gastos
+# Tracker de Gastos Personales
 
 Aplicación fullstack para gestionar gastos personales con React + TypeScript y Node.js + Express. El frontend consume una API REST y usa localStorage como fallback cuando la API no está disponible.
+
+## Funcionalidades principales
+
+- Registro y listado de gastos
+- Edición y eliminación de transacciones
+- Resumen de gastos por categoría
+
+## Uso en línea
+
+Frontend desplegado en Vercel:
+
+- https://prueba-tecnica-three-tan.vercel.app/
+
+Backend desplegado en Render (health check):
+
+- https://pruebatecnicabackend-bzi1.onrender.com/health
+- Respuesta esperada: {"status":"ok"}
+
+## Nota sobre disponibilidad del backend
+
+El backend está en la capa gratuita de Render, por lo que puede entrar en suspensión. Al abrir el frontend, espera de 2 a 3 minutos para que el servicio despierte y la API responda correctamente.
 
 ## Requisitos
 
@@ -68,10 +89,5 @@ En Render, definir:
 
 ## Deploy
 
-- Frontend (Vercel): https://your-vercel-app.vercel.app
-
-## Screenshots
-
-![Listado de gastos](./screenshots/listado-gastos.png)
-![Formulario de gasto](./screenshots/formulario-gasto.png)
-![Filtros y resumen](./screenshots/filtros-resumen.png)
+- Frontend (Vercel): https://prueba-tecnica-three-tan.vercel.app/
+- Backend (Render): https://pruebatecnicabackend-bzi1.onrender.com
