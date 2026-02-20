@@ -1,4 +1,4 @@
-import { useMemo, useState } from 'react'
+import { useState } from 'react'
 import ExpenseForm from './components/ExpenseForm'
 import ExpenseTable from './components/ExpenseTable'
 import ExpenseSummary from './components/ExpenseSummary'
@@ -9,7 +9,6 @@ import MainLayout from './components/layout/MainLayout'
 import ToastNotification from './components/ui/ToastNotification'
 import { ExpenseProvider, useExpenses } from './context/ExpenseContext'
 import type { Expense } from './types/expense'
-import { formatCurrency } from './utils/currency'
 import { MESSAGES } from './constants/messages'
 
 const AppContent = () => {
@@ -17,7 +16,6 @@ const AppContent = () => {
     expenses,
     loading,
     error,
-    isFallback,
     successMessage,
     clearSuccessMessage,
     refreshExpenses,
@@ -26,22 +24,17 @@ const AppContent = () => {
     undefined
   )
 
-  const total = useMemo(
-    () => expenses.reduce((sum, expense) => sum + expense.amount, 0),
-    [expenses]
-  )
-
   const handleEdit = (expense: Expense) => {
     setExpenseToEdit(expense)
   }
 
+  const handleClearEdit = () => {
+    setExpenseToEdit(undefined)
+  }
+
   return (
     <MainLayout>
-      <Header
-        total={total}
-        isFallback={isFallback}
-        formatCurrency={formatCurrency}
-      />
+      <Header />
 
       <div className="d-flex flex-column gap-4">
         {error && (
@@ -56,24 +49,41 @@ const AppContent = () => {
             </button>
           </div>
         )}
+        
         {loading && (
-          <div className="d-flex justify-content-center">
-            <div className="spinner-border text-primary" role="status">
+          <div className="d-flex justify-content-center py-5">
+            <div className="spinner-border text-success" role="status">
               <span className="visually-hidden">{MESSAGES.UI.LOADING}</span>
             </div>
           </div>
         )}
-        <FilterBar />
+
         <ExpenseSummary expenses={expenses} />
+        
+        <FilterBar />
+
         <div className="row g-4">
-          <div className="col-lg-6">
-            <ExpenseForm expenseToEdit={expenseToEdit} />
+          <div className="col-lg-8">
+            <div className="row g-4">
+              <div className="col-12">
+                <ExpenseChart expenses={expenses} />
+              </div>
+              <div className="col-12">
+                <ExpenseTable expenses={expenses} onEdit={handleEdit} />
+              </div>
+            </div>
           </div>
-          <div className="col-lg-6">
-            <ExpenseChart expenses={expenses} />
+          <div className="col-lg-4">
+            <div className="sticky-top" style={{ top: '2rem', zIndex: 1 }}>
+              <ExpenseForm 
+                key={expenseToEdit?.id ?? 'new-expense'}
+                expenseToEdit={expenseToEdit} 
+                onClearEdit={handleClearEdit}
+              />
+            </div>
           </div>
         </div>
-        <ExpenseTable expenses={expenses} onEdit={handleEdit} />
+
       </div>
       {successMessage && (
         <ToastNotification
