@@ -1,6 +1,8 @@
 # Tracker de Gastos Personales
 
-Aplicación fullstack para gestionar gastos personales con React + TypeScript y Node.js + Express. El frontend consume una API REST y usa localStorage como fallback cuando la API no está disponible.
+Aplicación fullstack para gestionar gastos personales con React + TypeScript y Node.js + Express.
+
+<img width="1833" height="711" alt="image" src="https://github.com/user-attachments/assets/dd6e9865-fa9c-4944-9919-f79f0319e5f1" />
 
 ## Funcionalidades principales
 
