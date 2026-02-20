@@ -1,26 +1,9 @@
 import type { Expense } from '../types/expense'
+import { formatCurrency } from '../utils/formatters'
+import CategoryIcon from './ui/CategoryIcon'
 
 type ExpenseSummaryProps = {
   expenses: Expense[]
-}
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-CO', {
-    style: 'currency',
-    currency: 'COP',
-    maximumFractionDigits: 0,
-  }).format(amount)
-
-const getCategoryEmoji = (category: string) => {
-  const map: Record<string, string> = {
-    Comida: '🍔',
-    Transporte: '🚗',
-    Entretenimiento: '🎬',
-    Salud: '🏥',
-    Educación: '📚',
-    Otros: '📦',
-  }
-  return map[category] || '💰'
 }
 
 const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
@@ -74,9 +57,7 @@ const ExpenseSummary = ({ expenses }: ExpenseSummaryProps) => {
                 <p className="text-muted mb-1" style={{ fontSize: '0.9rem' }}>{category}</p>
                 <h2 className="mb-0">{formatCurrency(amount)}</h2>
               </div>
-              <div style={{ width: 32, height: 32, border: '1px solid #E5E7EB', borderRadius: '50%', display: 'flex', alignItems: 'center', justifyContent: 'center', fontSize: '1.2rem', background: '#F9FAFB' }}>
-                {getCategoryEmoji(category)}
-              </div>
+              <CategoryIcon category={category} size={32} />
             </div>
             <div className="mt-3 d-flex align-items-center gap-2">
               <span className="badge bg-light text-secondary rounded-pill px-2 py-1 border" style={{ fontSize: '0.7rem' }}>

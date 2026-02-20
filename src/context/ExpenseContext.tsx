@@ -9,6 +9,7 @@ import {
 import type { ReactNode } from 'react'
 import type { Expense, ExpenseFilters, ExpenseFormData } from '../types/expense'
 import useLocalStorage from '../hooks/useLocalStorage'
+import { useAsync } from '../hooks/useAsync'
 import {
   createExpense,
   deleteExpense,
@@ -50,46 +51,16 @@ const ExpenseProvider = ({
   )
   const [expenses, setExpenses] = useState<Expense[]>(storedExpenses)
   const storedExpensesRef = useRef(storedExpenses)
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState<string | null>(null)
+  const { loading, error, isFallback, execute, setIsFallback } = useAsync()
   const [successMessage, setSuccessMessage] = useState<string | null>(null)
-  const [isFallback, setIsFallback] = useState(false)
   const [filters, setFilters] = useState<ExpenseFilters>({})
 
   useEffect(() => {
     storedExpensesRef.current = storedExpenses
   }, [storedExpenses])
 
-  const executeOperation = useCallback(
-    async <T,>(
-      operation: () => Promise<T>,
-      errorMessage: string,
-      onSuccess?: (result: T) => void,
-      onError?: () => void
-    ) => {
-      setLoading(true)
-      setError(null)
-      try {
-        const result = await operation()
-        setIsFallback(false)
-        if (onSuccess) onSuccess(result)
-        return result
-      } catch (err) {
-        setError(errorMessage)
-        if (onError) {
-          onError()
-        } else {
-          throw err
-        }
-      } finally {
-        setLoading(false)
-      }
-    },
-    []
-  )
-
   const refreshExpenses = useCallback(async () => {
-    await executeOperation(
+    await execute(
       () => getExpenses(filters),
       MESSAGES.ERRORS.FETCH,
       (data) => {
@@ -101,7 +72,7 @@ const ExpenseProvider = ({
         setIsFallback(true)
       }
     )
-  }, [filters, setStoredExpenses, executeOperation])
+  }, [filters, setStoredExpenses, execute, setIsFallback])
 
   useEffect(() => {
     if (!autoFetch) {
@@ -113,7 +84,7 @@ const ExpenseProvider = ({
   const addExpense = async (
     data: ExpenseFormData
   ): Promise<Expense | undefined> => {
-    return executeOperation(
+    return execute(
       () => createExpense(data),
       MESSAGES.ERRORS.CREATE,
       (created) => {
@@ -129,7 +100,7 @@ const ExpenseProvider = ({
     id: string,
     data: Partial<ExpenseFormData>
   ): Promise<Expense | undefined> => {
-    return executeOperation(
+    return execute(
       () => updateExpense(id, data),
       MESSAGES.ERRORS.UPDATE,
       (updated) => {
@@ -144,7 +115,7 @@ const ExpenseProvider = ({
   }
 
   const removeExpense = async (id: string): Promise<void> => {
-    await executeOperation(
+    await execute(
       () => deleteExpense(id),
       MESSAGES.ERRORS.DELETE,
       () => {
