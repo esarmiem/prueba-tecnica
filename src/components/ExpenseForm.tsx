@@ -1,6 +1,8 @@
 import { useState } from 'react'
 import type { Expense, ExpenseFormData } from '../types/expense'
 import { useExpenses } from '../context/ExpenseContext'
+import { CATEGORIES } from '../constants/categories'
+import { MESSAGES } from '../constants/messages'
 
 type ExpenseFormProps = {
   expenseToEdit?: Expense
@@ -11,15 +13,6 @@ type FormErrors = {
   category?: string
   date?: string
 }
-
-const categories = [
-  'Comida',
-  'Transporte',
-  'Entretenimiento',
-  'Salud',
-  'Educación',
-  'Otros',
-]
 
 const initialFormState = {
   amount: '',
@@ -53,15 +46,15 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
     const amountValue = Number(formState.amount)
 
     if (!formState.amount || Number.isNaN(amountValue) || amountValue <= 0) {
-      nextErrors.amount = 'Ingresa un monto válido'
+      nextErrors.amount = MESSAGES.ERRORS.VALIDATION.AMOUNT
     }
 
     if (!formState.category) {
-      nextErrors.category = 'Selecciona una categoría'
+      nextErrors.category = MESSAGES.ERRORS.VALIDATION.CATEGORY
     }
 
     if (!formState.date) {
-      nextErrors.date = 'Selecciona una fecha'
+      nextErrors.date = MESSAGES.ERRORS.VALIDATION.DATE
     }
 
     setErrors(nextErrors)
@@ -92,7 +85,9 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
   }
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = event.target
     setFormState((prev) => ({ ...prev, [name]: value }))
@@ -130,7 +125,7 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
                 onChange={handleChange}
               >
                 <option value="">Selecciona</option>
-                {categories.map((category) => (
+                {CATEGORIES.map((category) => (
                   <option key={category} value={category}>
                     {category}
                   </option>

@@ -4,8 +4,13 @@ import ExpenseTable from './components/ExpenseTable'
 import ExpenseSummary from './components/ExpenseSummary'
 import ExpenseChart from './components/ExpenseChart'
 import FilterBar from './components/FilterBar'
+import Header from './components/layout/Header'
+import MainLayout from './components/layout/MainLayout'
+import ToastNotification from './components/ui/ToastNotification'
 import { ExpenseProvider, useExpenses } from './context/ExpenseContext'
 import type { Expense } from './types/expense'
+import { formatCurrency } from './utils/currency'
+import { MESSAGES } from './constants/messages'
 
 const AppContent = () => {
   const {
@@ -31,28 +36,12 @@ const AppContent = () => {
   }
 
   return (
-    <div className="container py-4">
-      <header className="mb-4">
-        <div className="d-flex flex-column flex-md-row align-items-md-center justify-content-between gap-2">
-          <div>
-            <div className="d-flex flex-wrap align-items-center gap-2">
-              <h1 className="h3 mb-1">Gestor de Gastos</h1>
-              {isFallback && (
-                <span className="badge text-bg-warning">
-                  Datos desde localStorage
-                </span>
-              )}
-            </div>
-            <p className="text-muted mb-0">
-              Controla tus gastos personales en un solo lugar
-            </p>
-          </div>
-          <div className="text-md-end">
-            <p className="text-muted mb-1">Total general</p>
-            <h2 className="mb-0">{formatCurrency(total)}</h2>
-          </div>
-        </div>
-      </header>
+    <MainLayout>
+      <Header
+        total={total}
+        isFallback={isFallback}
+        formatCurrency={formatCurrency}
+      />
 
       <div className="d-flex flex-column gap-4">
         {error && (
@@ -63,14 +52,14 @@ const AppContent = () => {
               className="btn btn-outline-danger btn-sm"
               onClick={refreshExpenses}
             >
-              Reintentar
+              {MESSAGES.UI.RETRY}
             </button>
           </div>
         )}
         {loading && (
           <div className="d-flex justify-content-center">
             <div className="spinner-border text-primary" role="status">
-              <span className="visually-hidden">Cargando...</span>
+              <span className="visually-hidden">{MESSAGES.UI.LOADING}</span>
             </div>
           </div>
         )}
@@ -87,21 +76,12 @@ const AppContent = () => {
         <ExpenseTable expenses={expenses} onEdit={handleEdit} />
       </div>
       {successMessage && (
-        <div className="position-fixed top-0 end-0 p-3" style={{ zIndex: 1080 }}>
-          <div className="toast show">
-            <div className="toast-header">
-              <strong className="me-auto">Listo</strong>
-              <button
-                type="button"
-                className="btn-close"
-                onClick={clearSuccessMessage}
-              />
-            </div>
-            <div className="toast-body">{successMessage}</div>
-          </div>
-        </div>
+        <ToastNotification
+          message={successMessage}
+          onClose={clearSuccessMessage}
+        />
       )}
-    </div>
+    </MainLayout>
   )
 }
 
@@ -112,11 +92,5 @@ function App() {
     </ExpenseProvider>
   )
 }
-
-const formatCurrency = (amount: number) =>
-  new Intl.NumberFormat('es-MX', {
-    style: 'currency',
-    currency: 'MXN',
-  }).format(amount)
 
 export default App

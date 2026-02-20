@@ -15,6 +15,7 @@ import {
   getExpenses,
   updateExpense,
 } from '../services/expenseService'
+import { MESSAGES } from '../constants/messages'
 
 type ExpenseContextValue = {
   expenses: Expense[]
@@ -26,8 +27,11 @@ type ExpenseContextValue = {
   setFilters: React.Dispatch<React.SetStateAction<ExpenseFilters>>
   refreshExpenses: () => Promise<void>
   clearSuccessMessage: () => void
-  addExpense: (data: ExpenseFormData) => Promise<Expense>
-  editExpense: (id: string, data: Partial<ExpenseFormData>) => Promise<Expense>
+  addExpense: (data: ExpenseFormData) => Promise<Expense | undefined>
+  editExpense: (
+    id: string,
+    data: Partial<ExpenseFormData>
+  ) => Promise<Expense | undefined>
   removeExpense: (id: string) => Promise<void>
 }
 
@@ -56,22 +60,48 @@ const ExpenseProvider = ({
     storedExpensesRef.current = storedExpenses
   }, [storedExpenses])
 
+  const executeOperation = useCallback(
+    async <T,>(
+      operation: () => Promise<T>,
+      errorMessage: string,
+      onSuccess?: (result: T) => void,
+      onError?: () => void
+    ) => {
+      setLoading(true)
+      setError(null)
+      try {
+        const result = await operation()
+        setIsFallback(false)
+        if (onSuccess) onSuccess(result)
+        return result
+      } catch (err) {
+        setError(errorMessage)
+        if (onError) {
+          onError()
+        } else {
+          throw err
+        }
+      } finally {
+        setLoading(false)
+      }
+    },
+    []
+  )
+
   const refreshExpenses = useCallback(async () => {
-    setLoading(true)
-    setError(null)
-    try {
-      const data = await getExpenses(filters)
-      setExpenses(data)
-      setStoredExpenses(data)
-      setIsFallback(false)
-    } catch {
-      setError('No se pudo cargar la API. Usando localStorage.')
-      setExpenses(storedExpensesRef.current)
-      setIsFallback(true)
-    } finally {
-      setLoading(false)
-    }
-  }, [filters, setStoredExpenses])
+    await executeOperation(
+      () => getExpenses(filters),
+      MESSAGES.ERRORS.FETCH,
+      (data) => {
+        setExpenses(data)
+        setStoredExpenses(data)
+      },
+      () => {
+        setExpenses(storedExpensesRef.current)
+        setIsFallback(true)
+      }
+    )
+  }, [filters, setStoredExpenses, executeOperation])
 
   useEffect(() => {
     if (!autoFetch) {
@@ -80,65 +110,50 @@ const ExpenseProvider = ({
     refreshExpenses()
   }, [autoFetch, refreshExpenses])
 
-  const addExpense = async (data: ExpenseFormData): Promise<Expense> => {
-    setLoading(true)
-    setError(null)
-    try {
-      const created = await createExpense(data)
-      const next = [...expenses, created]
-      setExpenses(next)
-      setStoredExpenses(next)
-      setSuccessMessage('Gasto agregado correctamente')
-      setIsFallback(false)
-      return created
-    } catch {
-      setError('No se pudo crear el gasto.')
-      throw new Error('createExpense failed')
-    } finally {
-      setLoading(false)
-    }
+  const addExpense = async (
+    data: ExpenseFormData
+  ): Promise<Expense | undefined> => {
+    return executeOperation(
+      () => createExpense(data),
+      MESSAGES.ERRORS.CREATE,
+      (created) => {
+        const next = [...expenses, created]
+        setExpenses(next)
+        setStoredExpenses(next)
+        setSuccessMessage(MESSAGES.SUCCESS.CREATE)
+      }
+    )
   }
 
   const editExpense = async (
     id: string,
     data: Partial<ExpenseFormData>
-  ): Promise<Expense> => {
-    setLoading(true)
-    setError(null)
-    try {
-      const updated = await updateExpense(id, data)
-      const next = expenses.map((expense) =>
-        expense.id === id ? updated : expense
-      )
-      setExpenses(next)
-      setStoredExpenses(next)
-      setSuccessMessage('Gasto actualizado correctamente')
-      setIsFallback(false)
-      return updated
-    } catch {
-      setError('No se pudo actualizar el gasto.')
-      throw new Error('updateExpense failed')
-    } finally {
-      setLoading(false)
-    }
+  ): Promise<Expense | undefined> => {
+    return executeOperation(
+      () => updateExpense(id, data),
+      MESSAGES.ERRORS.UPDATE,
+      (updated) => {
+        const next = expenses.map((expense) =>
+          expense.id === id ? updated : expense
+        )
+        setExpenses(next)
+        setStoredExpenses(next)
+        setSuccessMessage(MESSAGES.SUCCESS.UPDATE)
+      }
+    )
   }
 
   const removeExpense = async (id: string): Promise<void> => {
-    setLoading(true)
-    setError(null)
-    try {
-      await deleteExpense(id)
-      const next = expenses.filter((expense) => expense.id !== id)
-      setExpenses(next)
-      setStoredExpenses(next)
-      setSuccessMessage('Gasto eliminado correctamente')
-      setIsFallback(false)
-    } catch {
-      setError('No se pudo eliminar el gasto.')
-      throw new Error('deleteExpense failed')
-    } finally {
-      setLoading(false)
-    }
+    await executeOperation(
+      () => deleteExpense(id),
+      MESSAGES.ERRORS.DELETE,
+      () => {
+        const next = expenses.filter((expense) => expense.id !== id)
+        setExpenses(next)
+        setStoredExpenses(next)
+        setSuccessMessage(MESSAGES.SUCCESS.DELETE)
+      }
+    )
   }
 
   const value: ExpenseContextValue = {
