@@ -1,9 +1,12 @@
 import { useState } from 'react'
 import type { Expense, ExpenseFormData } from '../types/expense'
 import { useExpenses } from '../context/ExpenseContext'
+import { CATEGORIES } from '../constants/categories'
+import { MESSAGES } from '../constants/messages'
 
 type ExpenseFormProps = {
   expenseToEdit?: Expense
+  onClearEdit?: () => void
 }
 
 type FormErrors = {
@@ -11,15 +14,6 @@ type FormErrors = {
   category?: string
   date?: string
 }
-
-const categories = [
-  'Comida',
-  'Transporte',
-  'Entretenimiento',
-  'Salud',
-  'Educación',
-  'Otros',
-]
 
 const initialFormState = {
   amount: '',
@@ -41,7 +35,7 @@ const buildInitialState = (expenseToEdit?: Expense) => {
   }
 }
 
-const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
+const ExpenseForm = ({ expenseToEdit, onClearEdit }: ExpenseFormProps) => {
   const { addExpense, editExpense } = useExpenses()
   const [formState, setFormState] = useState(
     buildInitialState(expenseToEdit)
@@ -53,15 +47,15 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
     const amountValue = Number(formState.amount)
 
     if (!formState.amount || Number.isNaN(amountValue) || amountValue <= 0) {
-      nextErrors.amount = 'Ingresa un monto válido'
+      nextErrors.amount = MESSAGES.ERRORS.VALIDATION.AMOUNT
     }
 
     if (!formState.category) {
-      nextErrors.category = 'Selecciona una categoría'
+      nextErrors.category = MESSAGES.ERRORS.VALIDATION.CATEGORY
     }
 
     if (!formState.date) {
-      nextErrors.date = 'Selecciona una fecha'
+      nextErrors.date = MESSAGES.ERRORS.VALIDATION.DATE
     }
 
     setErrors(nextErrors)
@@ -83,6 +77,10 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
 
     if (expenseToEdit) {
       await editExpense(expenseToEdit.id, payload)
+      // Clear edit mode in parent
+      if (onClearEdit) {
+        onClearEdit()
+      }
     } else {
       await addExpense(payload)
     }
@@ -92,92 +90,130 @@ const ExpenseFormFields = ({ expenseToEdit }: ExpenseFormProps) => {
   }
 
   const handleChange = (
-    event: React.ChangeEvent<HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement>
+    event: React.ChangeEvent<
+      HTMLInputElement | HTMLSelectElement | HTMLTextAreaElement
+    >
   ) => {
     const { name, value } = event.target
     setFormState((prev) => ({ ...prev, [name]: value }))
   }
 
+  const handleCancel = () => {
+    if (onClearEdit) {
+      onClearEdit()
+    }
+    setFormState(initialFormState)
+    setErrors({})
+  }
+
   return (
-    <div className="card shadow-sm animate-slide-down">
-      <div className="card-body">
-        <h5 className="card-title mb-3">
-          {expenseToEdit ? 'Editar gasto' : 'Nuevo gasto'}
-        </h5>
+    <div className="card-donezo">
+      <div className="card-header-donezo">
+        <h5 className="mb-0">{expenseToEdit ? 'Editar Gasto' : 'Nuevo Gasto'}</h5>
+        {expenseToEdit && (
+          <button 
+            type="button" 
+            className="btn btn-sm btn-light rounded-circle text-danger" 
+            style={{ width: 32, height: 32, padding: 0 }}
+            onClick={handleCancel}
+            title="Cancelar edición"
+          >
+            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+              <line x1="18" y1="6" x2="6" y2="18" />
+              <line x1="6" y1="6" x2="18" y2="18" />
+            </svg>
+          </button>
+        ) }
+      </div>
+      <div className="card-body-donezo">
         <form onSubmit={handleSubmit} noValidate>
-          <div className="row g-3">
-            <div className="col-md-4">
-              <label className="form-label">Monto</label>
+          <div className="mb-3">
+            <label className="form-label text-muted small text-uppercase fw-semibold">Monto</label>
+            <div className="input-group">
+              <span className="input-group-text border-0 bg-light rounded-start-pill ps-3">$</span>
               <input
                 type="number"
-                className={`form-control ${errors.amount ? 'is-invalid' : ''}`}
+                className={`form-control border-0 bg-light rounded-end-pill ${
+                  errors.amount ? 'is-invalid' : ''
+                }`}
                 name="amount"
                 value={formState.amount}
                 onChange={handleChange}
-                min="0"
-                step="0.01"
+                placeholder="0.00"
               />
               {errors.amount && (
-                <div className="invalid-feedback">{errors.amount}</div>
+                <div className="invalid-feedback ms-3">{errors.amount}</div>
               )}
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Categoría</label>
-              <select
-                className={`form-select ${errors.category ? 'is-invalid' : ''}`}
-                name="category"
-                value={formState.category}
-                onChange={handleChange}
-              >
-                <option value="">Selecciona</option>
-                {categories.map((category) => (
-                  <option key={category} value={category}>
-                    {category}
-                  </option>
-                ))}
-              </select>
-              {errors.category && (
-                <div className="invalid-feedback">{errors.category}</div>
-              )}
-            </div>
-            <div className="col-md-4">
-              <label className="form-label">Fecha</label>
-              <input
-                type="date"
-                className={`form-control ${errors.date ? 'is-invalid' : ''}`}
-                name="date"
-                value={formState.date}
-                onChange={handleChange}
-              />
-              {errors.date && (
-                <div className="invalid-feedback">{errors.date}</div>
-              )}
-            </div>
-            <div className="col-12">
-              <label className="form-label">Descripción</label>
-              <textarea
-                className="form-control"
-                name="description"
-                value={formState.description}
-                onChange={handleChange}
-                rows={3}
-              />
             </div>
           </div>
-          <div className="mt-3 d-flex justify-content-end">
-            <button type="submit" className="btn btn-primary">
-              {expenseToEdit ? 'Guardar cambios' : 'Agregar gasto'}
+
+          <div className="mb-3">
+            <label className="form-label text-muted small text-uppercase fw-semibold">Categoría</label>
+            <select
+              className={`form-select border-0 bg-light rounded-pill ${
+                errors.category ? 'is-invalid' : ''
+              }`}
+              name="category"
+              value={formState.category}
+              onChange={handleChange}
+            >
+              <option value="">Selecciona Categoría</option>
+              {CATEGORIES.map((category) => (
+                <option key={category} value={category}>
+                  {category}
+                </option>
+              ))}
+            </select>
+            {errors.category && (
+              <div className="invalid-feedback ms-3">{errors.category}</div>
+            )}
+          </div>
+
+          <div className="mb-3">
+            <label className="form-label text-muted small text-uppercase fw-semibold">Fecha</label>
+            <input
+              type="date"
+              className={`form-control border-0 bg-light rounded-pill ${
+                errors.date ? 'is-invalid' : ''
+              }`}
+              name="date"
+              value={formState.date}
+              onChange={handleChange}
+            />
+            {errors.date && <div className="invalid-feedback ms-3">{errors.date}</div>}
+          </div>
+
+          <div className="mb-4">
+            <label className="form-label text-muted small text-uppercase fw-semibold">Descripción</label>
+            <textarea
+              className="form-control border-0 bg-light"
+              style={{ borderRadius: '1rem' }}
+              name="description"
+              value={formState.description}
+              onChange={handleChange}
+              rows={3}
+              placeholder="¿Para qué fue esto?"
+            />
+          </div>
+
+          <div className="d-grid gap-2">
+            <button type="submit" className="btn btn-primary-donezo">
+              {expenseToEdit ? 'Guardar Cambios' : 'Agregar Gasto'}
             </button>
+            {expenseToEdit && (
+              <button 
+                type="button" 
+                className="btn btn-outline-donezo border-0 btn-sm text-muted"
+                onClick={handleCancel}
+              >
+                Cancelar
+              </button>
+            )}
           </div>
         </form>
       </div>
     </div>
   )
-}
-
-const ExpenseForm = ({ expenseToEdit }: ExpenseFormProps) => {
-  const formKey = expenseToEdit?.id ?? 'new-expense'
-  return <ExpenseFormFields key={formKey} expenseToEdit={expenseToEdit} />
 }
 
 export default ExpenseForm

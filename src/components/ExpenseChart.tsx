@@ -7,7 +7,7 @@ import {
 } from 'chart.js'
 import { Doughnut } from 'react-chartjs-2'
 import type { Expense } from '../types/expense'
-import { useExpenses } from '../context/ExpenseContext'
+import { CATEGORY_COLORS } from '../constants/theme'
 
 ChartJS.register(ArcElement, Tooltip, Legend)
 
@@ -15,17 +15,7 @@ type ExpenseChartProps = {
   expenses: Expense[]
 }
 
-const categoryColors: Record<string, string> = {
-  Comida: '#f97316',
-  Transporte: '#0ea5e9',
-  Entretenimiento: '#a855f7',
-  Salud: '#22c55e',
-  Educación: '#eab308',
-  Otros: '#64748b',
-}
-
 const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
-  const { filters } = useExpenses()
   const totalsByCategory = expenses.reduce<Record<string, number>>(
     (acc, expense) => {
       acc[expense.category] = (acc[expense.category] ?? 0) + expense.amount
@@ -39,10 +29,12 @@ const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
 
   if (labels.length === 0) {
     return (
-      <div className="card shadow-sm animate-fade-in">
-        <div className="card-body text-center text-muted">
-          <div className="fs-2 mb-2">📊</div>
-          <p className="mb-0">Sin gastos para mostrar</p>
+      <div className="card-donezo">
+        <div className="card-body-donezo text-center text-muted d-flex flex-column align-items-center justify-content-center h-100">
+          <div className="fs-2 mb-2" style={{ opacity: 0.5 }}>
+            📊
+          </div>
+          <p className="mb-0">No hay datos disponibles</p>
         </div>
       </div>
     )
@@ -53,53 +45,49 @@ const ExpenseChart = ({ expenses }: ExpenseChartProps) => {
     datasets: [
       {
         data: values,
-        backgroundColor: labels.map((label) => categoryColors[label] ?? '#94a3b8'),
+        backgroundColor: labels.map(
+          (label) => CATEGORY_COLORS[label] ?? '#94a3b8'
+        ),
         borderWidth: 0,
+        hoverOffset: 4,
       },
     ],
   }
 
-  const title = buildTitle(filters)
-
   const options: ChartOptions<'doughnut'> = {
+    cutout: '70%',
     plugins: {
       legend: {
-        position: 'bottom',
+        position: 'right',
+        labels: {
+          usePointStyle: true,
+          padding: 20,
+          font: {
+            family: 'system-ui',
+            size: 12
+          }
+        }
       },
       title: {
-        display: true,
-        text: title,
+        display: false,
       },
     },
-    animation: {
-      easing: 'easeInOutQuart',
+    layout: {
+      padding: 20
     },
+    maintainAspectRatio: false,
   }
 
   return (
-    <div className="card shadow-sm animate-fade-in">
-      <div className="card-body">
+    <div className="card-donezo h-100">
+      <div className="card-header-donezo">
+        <h5 className="mb-0">Análisis de Gastos</h5>
+      </div>
+      <div className="card-body-donezo" style={{ height: '300px' }}>
         <Doughnut data={data} options={options} />
       </div>
     </div>
   )
 }
-
-const buildTitle = (filters: { startDate?: string; endDate?: string }) => {
-  const { startDate, endDate } = filters
-  if (!startDate && !endDate) {
-    return 'Todos los gastos'
-  }
-  if (startDate && endDate) {
-    return `Gastos del ${formatDate(startDate)} al ${formatDate(endDate)}`
-  }
-  if (startDate) {
-    return `Gastos desde ${formatDate(startDate)}`
-  }
-  return `Gastos hasta ${formatDate(endDate ?? '')}`
-}
-
-const formatDate = (value: string) =>
-  new Intl.DateTimeFormat('es-MX').format(new Date(value))
 
 export default ExpenseChart

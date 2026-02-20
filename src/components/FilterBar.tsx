@@ -39,13 +39,12 @@ const FilterBar = () => {
   }
 
   return (
-    <div className="card shadow-sm animate-slide-down">
-      <div className="card-body">
-        <div className="row g-3 align-items-end">
-          <div className="col-md-4">
-            <label className="form-label">Categoría</label>
+    <div className="card-donezo mb-4">
+      <div className="card-body-donezo py-3">
+        <div className="row g-3 align-items-center">
+          <div className="col-md-3">
             <select
-              className="form-select"
+              className="form-select border-0 bg-light rounded-pill"
               name="category"
               value={localFilters.category}
               onChange={handleChange}
@@ -58,32 +57,32 @@ const FilterBar = () => {
             </select>
           </div>
           <div className="col-md-3">
-            <label className="form-label">Desde</label>
             <input
-              className="form-control"
+              className="form-control border-0 bg-light rounded-pill"
               type="date"
               name="startDate"
               value={localFilters.startDate ?? ''}
               onChange={handleChange}
+              placeholder="Desde"
             />
           </div>
           <div className="col-md-3">
-            <label className="form-label">Hasta</label>
             <input
-              className="form-control"
+              className="form-control border-0 bg-light rounded-pill"
               type="date"
               name="endDate"
               value={localFilters.endDate ?? ''}
               onChange={handleChange}
+              placeholder="Hasta"
             />
           </div>
-          <div className="col-md-2 d-grid">
+          <div className="col-md-3 text-end">
             <button
               type="button"
-              className="btn btn-outline-secondary"
+              className="btn btn-outline-donezo btn-sm"
               onClick={handleReset}
             >
-              Limpiar filtros
+              Limpiar Filtros
             </button>
           </div>
         </div>
